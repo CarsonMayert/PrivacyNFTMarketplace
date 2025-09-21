@@ -1,0 +1,1452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#1e40af" />
+    <meta name="description" content="Privacy NFT Marketplace - Confidential collectibles trading using Zama FHE protocol" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <title>Privacy NFT Marketplace - Confidential Collectibles Trading</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+            color: #f8fafc;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem 0;
+            border-bottom: 1px solid #475569;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #8b5cf6, #06b6d4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            color: #94a3b8;
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        .wallet-section {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid #475569;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .wallet-status {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 500;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #ef4444;
+        }
+
+        .status-dot.connected {
+            background: #22c55e;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+            color: white;
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            margin: 0.5rem;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(139, 92, 246, 0.3);
+        }
+
+        .btn:disabled {
+            background: #64748b;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn.secondary {
+            background: linear-gradient(135deg, #06b6d4, #0891b2);
+        }
+
+        .btn.secondary:hover {
+            box-shadow: 0 10px 25px rgba(6, 182, 212, 0.3);
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .card {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid #475569;
+            border-radius: 12px;
+            padding: 2rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .card h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: #f1f5f9;
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            font-weight: 500;
+        }
+
+        .alert.success {
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid #22c55e;
+            color: #86efac;
+        }
+
+        .alert.error {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid #ef4444;
+            color: #fca5a5;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        #walletInfo {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: rgba(30, 41, 59, 0.6);
+            border-radius: 8px;
+        }
+
+        .nft-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .nft-item {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid #475569;
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .nft-item:hover {
+            border-color: #8b5cf6;
+            background: rgba(139, 92, 246, 0.1);
+        }
+
+        .nft-item.owned {
+            border-color: #06b6d4;
+            background: rgba(6, 182, 212, 0.05);
+        }
+
+        .nft-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .nft-id {
+            background: rgba(139, 92, 246, 0.2);
+            color: #c4b5fd;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .nft-status {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+
+        .nft-status.owned {
+            background: rgba(6, 182, 212, 0.2);
+            color: #67e8f9;
+        }
+
+        .nft-status.listed {
+            background: rgba(34, 197, 94, 0.2);
+            color: #86efac;
+        }
+
+        .nft-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #f1f5f9;
+            margin-bottom: 0.5rem;
+        }
+
+        .nft-owner {
+            font-size: 0.9rem;
+            color: #94a3b8;
+            margin-bottom: 1rem;
+        }
+
+        .nft-actions {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-small {
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            border-radius: 6px;
+        }
+
+        .loading-spinner {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #94a3b8;
+        }
+
+        .spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid #475569;
+            border-top: 2px solid #8b5cf6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>Privacy NFT Marketplace</h1>
+            <p>Confidential collectibles trading platform using Zama FHE protocol for private ownership and secure transactions</p>
+        </header>
+
+        <div class="wallet-section">
+            <div class="wallet-status">
+                <div class="status-indicator">
+                    <div class="status-dot" id="statusDot"></div>
+                    <span id="walletStatus">Not Connected</span>
+                </div>
+                <div style="display: flex; gap: 1rem;">
+                    <button class="btn" id="connectWallet" type="button">Connect Wallet</button>
+                    <button class="btn secondary" id="deployContract" type="button">Deploy Contract</button>
+                </div>
+            </div>
+            <div id="walletInfo" class="hidden">
+                <p><strong>Address:</strong> <span id="userAddress"></span></p>
+                <p><strong>Network:</strong> <span id="networkName"></span></p>
+                <p><strong>Chain ID:</strong> <span id="chainId"></span></p>
+            </div>
+        </div>
+
+        <div style="background: rgba(15, 23, 42, 0.8); border: 1px solid #475569; border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem;">
+            <h3 style="margin-bottom: 1rem; color: #f1f5f9;">System Status</h3>
+            <div id="statusContent">
+                <p>Checking MetaMask...</p>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="card">
+                <h2>Contract Actions</h2>
+                <button type="button" class="btn" id="checkContractBtn">🔍 Check Contract</button>
+                <button type="button" class="btn" id="loadNFTsBtn">📋 Load NFTs</button>
+                <button type="button" class="btn" id="checkNetworkBtn">🌐 Check Network</button>
+                <button type="button" class="btn secondary" id="switchNetworkBtn" disabled>🔄 Switch to Sepolia</button>
+            </div>
+
+            <div class="card">
+                <h2>NFT Collection</h2>
+                <div id="nftContainer">
+                    <p>Click "📋 Load NFTs" to view your NFT collection...</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="alerts"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/ethers@6.8.0/dist/ethers.umd.min.js"></script>
+
+    <script>
+        // ES5 Compatible JavaScript with Real MetaMask Integration
+        console.log('=== Privacy NFT Marketplace Starting ===');
+
+        // Global variables
+        var provider = null;
+        var signer = null;
+        var userAddress = null;
+        var currentChainId = null;
+        var isWalletConnected = false;
+
+        // DOM elements
+        var statusDot = null;
+        var walletStatus = null;
+        var walletInfo = null;
+        var userAddressSpan = null;
+        var networkNameSpan = null;
+        var chainIdSpan = null;
+        var alertsContainer = null;
+        var statusContent = null;
+
+        // Constants
+        var SEPOLIA_CHAIN_ID = '0xaa36a7'; // 11155111 in hex
+        var CONTRACT_ADDRESS = '0x372f6Fa9721cf63f837Df80d7747715cCb53a748';
+
+        // Contract ABI - Complete ABI for PrivacyNFTMarketplaceMini
+        var CONTRACT_ABI = [
+            {
+                "inputs": [],
+                "stateMutability": "nonpayable",
+                "type": "constructor"
+            },
+            {
+                "inputs": [
+                    {"internalType": "address", "name": "sender", "type": "address"},
+                    {"internalType": "uint256", "name": "tokenId", "type": "uint256"},
+                    {"internalType": "address", "name": "owner", "type": "address"}
+                ],
+                "name": "ERC721IncorrectOwner",
+                "type": "error"
+            },
+            {
+                "inputs": [
+                    {"internalType": "address", "name": "operator", "type": "address"},
+                    {"internalType": "uint256", "name": "tokenId", "type": "uint256"}
+                ],
+                "name": "ERC721InsufficientApproval",
+                "type": "error"
+            },
+            {
+                "inputs": [{"internalType": "address", "name": "approver", "type": "address"}],
+                "name": "ERC721InvalidApprover",
+                "type": "error"
+            },
+            {
+                "inputs": [{"internalType": "address", "name": "operator", "type": "address"}],
+                "name": "ERC721InvalidOperator",
+                "type": "error"
+            },
+            {
+                "inputs": [{"internalType": "address", "name": "owner", "type": "address"}],
+                "name": "ERC721InvalidOwner",
+                "type": "error"
+            },
+            {
+                "inputs": [{"internalType": "address", "name": "receiver", "type": "address"}],
+                "name": "ERC721InvalidReceiver",
+                "type": "error"
+            },
+            {
+                "inputs": [{"internalType": "address", "name": "sender", "type": "address"}],
+                "name": "ERC721InvalidSender",
+                "type": "error"
+            },
+            {
+                "inputs": [{"internalType": "uint256", "name": "tokenId", "type": "uint256"}],
+                "name": "ERC721NonexistentToken",
+                "type": "error"
+            },
+            {
+                "inputs": [{"internalType": "address", "name": "owner", "type": "address"}],
+                "name": "OwnableInvalidOwner",
+                "type": "error"
+            },
+            {
+                "inputs": [{"internalType": "address", "name": "account", "type": "address"}],
+                "name": "OwnableUnauthorizedAccount",
+                "type": "error"
+            },
+            {
+                "anonymous": false,
+                "inputs": [
+                    {"indexed": true, "internalType": "address", "name": "owner", "type": "address"},
+                    {"indexed": true, "internalType": "address", "name": "approved", "type": "address"},
+                    {"indexed": true, "internalType": "uint256", "name": "tokenId", "type": "uint256"}
+                ],
+                "name": "Approval",
+                "type": "event"
+            },
+            {
+                "anonymous": false,
+                "inputs": [
+                    {"indexed": true, "internalType": "address", "name": "owner", "type": "address"},
+                    {"indexed": true, "internalType": "address", "name": "operator", "type": "address"},
+                    {"indexed": false, "internalType": "bool", "name": "approved", "type": "bool"}
+                ],
+                "name": "ApprovalForAll",
+                "type": "event"
+            },
+            {
+                "anonymous": false,
+                "inputs": [
+                    {"indexed": true, "internalType": "uint256", "name": "tokenId", "type": "uint256"},
+                    {"indexed": true, "internalType": "address", "name": "seller", "type": "address"},
+                    {"indexed": false, "internalType": "uint32", "name": "price", "type": "uint32"}
+                ],
+                "name": "Listed",
+                "type": "event"
+            },
+            {
+                "anonymous": false,
+                "inputs": [
+                    {"indexed": true, "internalType": "address", "name": "previousOwner", "type": "address"},
+                    {"indexed": true, "internalType": "address", "name": "newOwner", "type": "address"}
+                ],
+                "name": "OwnershipTransferred",
+                "type": "event"
+            },
+            {
+                "anonymous": false,
+                "inputs": [
+                    {"indexed": true, "internalType": "uint256", "name": "tokenId", "type": "uint256"},
+                    {"indexed": true, "internalType": "address", "name": "buyer", "type": "address"},
+                    {"indexed": true, "internalType": "address", "name": "seller", "type": "address"}
+                ],
+                "name": "Sold",
+                "type": "event"
+            },
+            {
+                "anonymous": false,
+                "inputs": [
+                    {"indexed": true, "internalType": "address", "name": "from", "type": "address"},
+                    {"indexed": true, "internalType": "address", "name": "to", "type": "address"},
+                    {"indexed": true, "internalType": "uint256", "name": "tokenId", "type": "uint256"}
+                ],
+                "name": "Transfer",
+                "type": "event"
+            },
+            {
+                "inputs": [
+                    {"internalType": "address", "name": "to", "type": "address"},
+                    {"internalType": "uint256", "name": "tokenId", "type": "uint256"}
+                ],
+                "name": "approve",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [{"internalType": "address", "name": "owner", "type": "address"}],
+                "name": "balanceOf",
+                "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [{"internalType": "uint256", "name": "tokenId", "type": "uint256"}],
+                "name": "buy",
+                "outputs": [],
+                "stateMutability": "payable",
+                "type": "function"
+            },
+            {
+                "inputs": [{"internalType": "uint256", "name": "tokenId", "type": "uint256"}],
+                "name": "cancel",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "fee",
+                "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "feeCollector",
+                "outputs": [{"internalType": "address", "name": "", "type": "address"}],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [{"internalType": "uint256", "name": "tokenId", "type": "uint256"}],
+                "name": "getApproved",
+                "outputs": [{"internalType": "address", "name": "", "type": "address"}],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "getCurrentTokenId",
+                "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [{"internalType": "uint256", "name": "tokenId", "type": "uint256"}],
+                "name": "getEncryptedPrice",
+                "outputs": [{"internalType": "euint32", "name": "", "type": "bytes32"}],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [{"internalType": "uint256", "name": "tokenId", "type": "uint256"}],
+                "name": "getName",
+                "outputs": [{"internalType": "string", "name": "", "type": "string"}],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {"internalType": "address", "name": "owner", "type": "address"},
+                    {"internalType": "address", "name": "operator", "type": "address"}
+                ],
+                "name": "isApprovedForAll",
+                "outputs": [{"internalType": "bool", "name": "", "type": "bool"}],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {"internalType": "uint256", "name": "tokenId", "type": "uint256"},
+                    {"internalType": "uint32", "name": "price", "type": "uint32"}
+                ],
+                "name": "list",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+                "name": "listings",
+                "outputs": [
+                    {"internalType": "address", "name": "seller", "type": "address"},
+                    {"internalType": "uint32", "name": "price", "type": "uint32"},
+                    {"internalType": "euint32", "name": "encryptedPrice", "type": "bytes32"},
+                    {"internalType": "bool", "name": "active", "type": "bool"}
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {"internalType": "address", "name": "to", "type": "address"},
+                    {"internalType": "string", "name": "name", "type": "string"}
+                ],
+                "name": "mint",
+                "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "name",
+                "outputs": [{"internalType": "string", "name": "", "type": "string"}],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "owner",
+                "outputs": [{"internalType": "address", "name": "", "type": "address"}],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [{"internalType": "uint256", "name": "tokenId", "type": "uint256"}],
+                "name": "ownerOf",
+                "outputs": [{"internalType": "address", "name": "", "type": "address"}],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "renounceOwnership",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {"internalType": "address", "name": "from", "type": "address"},
+                    {"internalType": "address", "name": "to", "type": "address"},
+                    {"internalType": "uint256", "name": "tokenId", "type": "uint256"}
+                ],
+                "name": "safeTransferFrom",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {"internalType": "address", "name": "from", "type": "address"},
+                    {"internalType": "address", "name": "to", "type": "address"},
+                    {"internalType": "uint256", "name": "tokenId", "type": "uint256"},
+                    {"internalType": "bytes", "name": "data", "type": "bytes"}
+                ],
+                "name": "safeTransferFrom",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {"internalType": "address", "name": "operator", "type": "address"},
+                    {"internalType": "bool", "name": "approved", "type": "bool"}
+                ],
+                "name": "setApprovalForAll",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [{"internalType": "uint256", "name": "newFee", "type": "uint256"}],
+                "name": "setFee",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [{"internalType": "address", "name": "newCollector", "type": "address"}],
+                "name": "setFeeCollector",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [{"internalType": "bytes4", "name": "interfaceId", "type": "bytes4"}],
+                "name": "supportsInterface",
+                "outputs": [{"internalType": "bool", "name": "", "type": "bool"}],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "symbol",
+                "outputs": [{"internalType": "string", "name": "", "type": "string"}],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+                "name": "tokenNames",
+                "outputs": [{"internalType": "string", "name": "", "type": "string"}],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [{"internalType": "uint256", "name": "tokenId", "type": "uint256"}],
+                "name": "tokenURI",
+                "outputs": [{"internalType": "string", "name": "", "type": "string"}],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {"internalType": "address", "name": "from", "type": "address"},
+                    {"internalType": "address", "name": "to", "type": "address"},
+                    {"internalType": "uint256", "name": "tokenId", "type": "uint256"}
+                ],
+                "name": "transferFrom",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [{"internalType": "address", "name": "newOwner", "type": "address"}],
+                "name": "transferOwnership",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            }
+        ];
+
+        // Utility functions
+        function showAlert(message, type) {
+            console.log('ShowAlert:', message, type);
+
+            if (!alertsContainer) {
+                console.error('Alerts container not found!');
+                return;
+            }
+
+            var alert = document.createElement('div');
+            alert.className = 'alert ' + (type || 'success');
+            alert.innerHTML = message;
+            alertsContainer.appendChild(alert);
+
+            setTimeout(function() {
+                if (alert.parentNode) {
+                    alert.parentNode.removeChild(alert);
+                }
+            }, 5000);
+        }
+
+        function updateStatus(message) {
+            console.log('Status update:', message);
+            if (statusContent) {
+                statusContent.innerHTML = '<p>' + message + '</p>';
+            }
+        }
+
+        function updateWalletDisplay() {
+            if (isWalletConnected && userAddress) {
+                statusDot.className = 'status-dot connected';
+                walletStatus.textContent = 'Connected';
+                userAddressSpan.textContent = userAddress;
+
+                if (currentChainId) {
+                    chainIdSpan.textContent = parseInt(currentChainId, 16).toString();
+                    if (currentChainId === SEPOLIA_CHAIN_ID) {
+                        networkNameSpan.textContent = 'Sepolia Testnet';
+                        document.getElementById('switchNetworkBtn').disabled = true;
+                    } else {
+                        networkNameSpan.textContent = 'Unknown Network';
+                        document.getElementById('switchNetworkBtn').disabled = false;
+                    }
+                }
+
+                walletInfo.classList.remove('hidden');
+
+                var connectBtn = document.getElementById('connectWallet');
+                if (connectBtn) {
+                    connectBtn.textContent = 'Connected';
+                    connectBtn.disabled = true;
+                }
+            } else {
+                statusDot.className = 'status-dot';
+                walletStatus.textContent = 'Not Connected';
+                walletInfo.classList.add('hidden');
+
+                var connectBtn = document.getElementById('connectWallet');
+                if (connectBtn) {
+                    connectBtn.textContent = 'Connect Wallet';
+                    connectBtn.disabled = false;
+                }
+            }
+        }
+
+        // MetaMask functions
+        function connectWallet() {
+            console.log('Connect wallet function called');
+            updateStatus('Attempting to connect to MetaMask...');
+
+            if (typeof window.ethereum === 'undefined') {
+                showAlert('MetaMask not detected. Please install MetaMask to continue.', 'error');
+                updateStatus('MetaMask not found - please install MetaMask');
+                return;
+            }
+
+            // Request account access
+            window.ethereum.request({ method: 'eth_requestAccounts' })
+                .then(function(accounts) {
+                    console.log('Accounts received:', accounts);
+
+                    if (accounts.length === 0) {
+                        throw new Error('No accounts found');
+                    }
+
+                    // Create provider and signer
+                    provider = new ethers.BrowserProvider(window.ethereum);
+
+                    provider.getSigner()
+                        .then(function(signerResult) {
+                            signer = signerResult;
+                            return signer.getAddress();
+                        })
+                        .then(function(address) {
+                            userAddress = address;
+                            isWalletConnected = true;
+
+                            // Get network info
+                            return provider.getNetwork();
+                        })
+                        .then(function(network) {
+                            currentChainId = '0x' + network.chainId.toString(16);
+                            console.log('Connected to chain ID:', currentChainId);
+
+                            updateWalletDisplay();
+                            updateStatus('Wallet connected successfully!');
+                            showAlert('Wallet connected successfully!', 'success');
+
+                            if (currentChainId !== SEPOLIA_CHAIN_ID) {
+                                showAlert('Please switch to Sepolia testnet to deploy contracts', 'error');
+                            }
+                        })
+                        .catch(function(error) {
+                            console.error('Error getting network:', error);
+                            showAlert('Failed to get network info: ' + error.message, 'error');
+                        });
+                })
+                .catch(function(error) {
+                    console.error('Error connecting wallet:', error);
+                    showAlert('Failed to connect wallet: ' + error.message, 'error');
+                    updateStatus('Failed to connect wallet');
+                });
+        }
+
+        function checkContract() {
+            console.log('Check contract function called');
+
+            if (!provider) {
+                showAlert('Please connect wallet first', 'error');
+                return;
+            }
+
+            updateStatus('Checking contract at ' + CONTRACT_ADDRESS + '...');
+            showAlert('Checking contract deployment...', 'success');
+
+            provider.getCode(CONTRACT_ADDRESS)
+                .then(function(code) {
+                    console.log('Contract code:', code);
+                    console.log('Contract code length:', code.length);
+
+                    if (code === '0x') {
+                        updateStatus('❌ Contract not deployed at ' + CONTRACT_ADDRESS);
+                        showAlert('❌ Contract not found at ' + CONTRACT_ADDRESS + '. You need to deploy it first.', 'error');
+
+                        // Show deployment instructions
+                        setTimeout(function() {
+                            showAlert('To deploy: Run "npx hardhat run scripts/deploy-mini-sepolia.js --network sepolia" in your terminal', 'error');
+                        }, 1000);
+                        setTimeout(function() {
+                            showAlert('Make sure you have Sepolia ETH in your wallet! Get some from https://sepoliafaucet.com/', 'error');
+                        }, 2000);
+                    } else {
+                        updateStatus('✅ Contract found and deployed!');
+                        showAlert('✅ Contract is deployed and ready! You can now load NFTs.', 'success');
+
+                        // Try to get some info from the contract
+                        var contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider);
+
+                        contract.getCurrentTokenId()
+                            .then(function(currentId) {
+                                console.log('Current token ID:', currentId.toString());
+                                showAlert('Current token count: ' + currentId.toString(), 'success');
+                            })
+                            .catch(function(error) {
+                                console.log('Could not get token ID:', error);
+                                showAlert('Contract found but could not read token count', 'success');
+                            });
+                    }
+                })
+                .catch(function(error) {
+                    console.error('Error checking contract:', error);
+                    updateStatus('Error checking contract');
+                    showAlert('Error checking contract: ' + error.message, 'error');
+                });
+        }
+
+        function checkNetwork() {
+            console.log('Check network function called');
+
+            if (!provider) {
+                showAlert('Please connect wallet first', 'error');
+                return;
+            }
+
+            updateStatus('Checking network...');
+
+            provider.getNetwork()
+                .then(function(network) {
+                    currentChainId = '0x' + network.chainId.toString(16);
+                    console.log('Current chain ID:', currentChainId);
+
+                    updateWalletDisplay();
+
+                    if (currentChainId === SEPOLIA_CHAIN_ID) {
+                        showAlert('✅ Connected to Sepolia testnet', 'success');
+                        updateStatus('Connected to Sepolia - ready for deployment');
+                    } else {
+                        showAlert('⚠️ Not on Sepolia testnet (Chain ID: ' + parseInt(currentChainId, 16) + ')', 'error');
+                        updateStatus('Please switch to Sepolia testnet');
+                    }
+                })
+                .catch(function(error) {
+                    console.error('Error checking network:', error);
+                    showAlert('Failed to check network: ' + error.message, 'error');
+                });
+        }
+
+        function switchToSepolia() {
+            console.log('Switch to Sepolia function called');
+
+            if (!window.ethereum) {
+                showAlert('MetaMask not available', 'error');
+                return;
+            }
+
+            updateStatus('Switching to Sepolia...');
+            showAlert('Switching to Sepolia testnet...', 'success');
+
+            window.ethereum.request({
+                method: 'wallet_switchEthereumChain',
+                params: [{ chainId: SEPOLIA_CHAIN_ID }],
+            })
+            .then(function() {
+                currentChainId = SEPOLIA_CHAIN_ID;
+                updateWalletDisplay();
+                showAlert('✅ Switched to Sepolia testnet', 'success');
+                updateStatus('Successfully switched to Sepolia');
+            })
+            .catch(function(error) {
+                console.error('Error switching network:', error);
+
+                if (error.code === 4902) {
+                    // Chain not added, try to add it
+                    window.ethereum.request({
+                        method: 'wallet_addEthereumChain',
+                        params: [{
+                            chainId: SEPOLIA_CHAIN_ID,
+                            chainName: 'Sepolia Testnet',
+                            nativeCurrency: {
+                                name: 'SepoliaETH',
+                                symbol: 'SEP',
+                                decimals: 18,
+                            },
+                            rpcUrls: ['https://sepolia.infura.io/v3/'],
+                            blockExplorerUrls: ['https://sepolia.etherscan.io/'],
+                        }],
+                    })
+                    .then(function() {
+                        showAlert('✅ Sepolia network added and switched', 'success');
+                        currentChainId = SEPOLIA_CHAIN_ID;
+                        updateWalletDisplay();
+                    })
+                    .catch(function(addError) {
+                        console.error('Error adding network:', addError);
+                        showAlert('Failed to add Sepolia network: ' + addError.message, 'error');
+                    });
+                } else {
+                    showAlert('Failed to switch network: ' + error.message, 'error');
+                }
+            });
+        }
+
+        function deployContract() {
+            console.log('Deploy contract function called');
+
+            if (!isWalletConnected) {
+                showAlert('Please connect your wallet first', 'error');
+                return;
+            }
+
+            if (currentChainId !== SEPOLIA_CHAIN_ID) {
+                showAlert('Please switch to Sepolia testnet first', 'error');
+                return;
+            }
+
+            updateStatus('Preparing contract deployment...');
+            showAlert('Contract deployment requires running: npx hardhat run scripts/deploy-mini-sepolia.js --network sepolia', 'error');
+
+            setTimeout(function() {
+                updateStatus('Manual deployment required - see console for instructions');
+                showAlert('Please run the deployment script manually in your terminal', 'error');
+            }, 2000);
+        }
+
+        function loadNFTs() {
+            console.log('Load NFTs function called');
+
+            if (!isWalletConnected) {
+                showAlert('Please connect your wallet first', 'error');
+                return;
+            }
+
+            if (currentChainId !== SEPOLIA_CHAIN_ID) {
+                showAlert('Please switch to Sepolia testnet first', 'error');
+                return;
+            }
+
+            var nftContainer = document.getElementById('nftContainer');
+            nftContainer.innerHTML = '<div class="loading-spinner"><div class="spinner"></div><span>Loading NFTs...</span></div>';
+
+            updateStatus('Loading NFTs from contract...');
+            showAlert('Loading NFT collection...', 'success');
+
+            // Check if contract exists
+            provider.getCode(CONTRACT_ADDRESS)
+                .then(function(code) {
+                    if (code === '0x') {
+                        throw new Error('Contract not deployed at ' + CONTRACT_ADDRESS);
+                    }
+
+                    // Create contract instance
+                    var contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider);
+
+                    // Get current token count
+                    return contract.getCurrentTokenId();
+                })
+                .then(function(currentTokenId) {
+                    console.log('Current token ID:', currentTokenId.toString());
+
+                    if (currentTokenId.toString() === '0') {
+                        nftContainer.innerHTML = '<p style="text-align: center; color: #94a3b8; padding: 2rem;">No NFTs found. Contract is deployed but no NFTs have been minted yet.</p>';
+                        updateStatus('No NFTs found in collection');
+                        return;
+                    }
+
+                    // Load all NFTs
+                    var contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider);
+                    var nftPromises = [];
+
+                    for (var i = 1; i <= Number(currentTokenId); i++) {
+                        nftPromises.push(loadNFTData(contract, i));
+                    }
+
+                    return Promise.all(nftPromises);
+                })
+                .then(function(nfts) {
+                    if (!nfts) return; // Handle case where no NFTs found
+
+                    console.log('Loaded NFTs:', nfts);
+                    displayNFTs(nfts.filter(function(nft) { return nft !== null; }));
+                    updateStatus('✅ Loaded ' + nfts.filter(function(nft) { return nft !== null; }).length + ' NFTs');
+                    showAlert('✅ NFT collection loaded successfully!', 'success');
+                })
+                .catch(function(error) {
+                    console.error('Error loading NFTs:', error);
+                    nftContainer.innerHTML = '<p style="text-align: center; color: #ef4444; padding: 2rem;">❌ Error loading NFTs: ' + error.message + '</p>';
+                    updateStatus('Error loading NFT collection');
+                    showAlert('❌ Failed to load NFTs: ' + error.message, 'error');
+                });
+        }
+
+        function loadNFTData(contract, tokenId) {
+            return Promise.all([
+                contract.getName(tokenId).catch(function() { return 'Unknown NFT #' + tokenId; }),
+                contract.ownerOf(tokenId).catch(function() { return '0x0000000000000000000000000000000000000000'; }),
+                contract.listings(tokenId).catch(function() {
+                    return { seller: '0x0000000000000000000000000000000000000000', price: 0, active: false };
+                })
+            ])
+            .then(function(results) {
+                var name = results[0];
+                var owner = results[1];
+                var listing = results[2];
+
+                return {
+                    tokenId: tokenId,
+                    name: name,
+                    owner: owner,
+                    isOwned: userAddress && owner.toLowerCase() === userAddress.toLowerCase(),
+                    isListed: listing.active,
+                    price: listing.price,
+                    seller: listing.seller
+                };
+            })
+            .catch(function(error) {
+                console.error('Error loading NFT', tokenId, ':', error);
+                return null;
+            });
+        }
+
+        function displayNFTs(nfts) {
+            var nftContainer = document.getElementById('nftContainer');
+
+            if (nfts.length === 0) {
+                nftContainer.innerHTML = '<p style="text-align: center; color: #94a3b8; padding: 2rem;">No NFTs found in your collection.</p>';
+                return;
+            }
+
+            var nftGrid = '<div class="nft-grid">';
+
+            for (var i = 0; i < nfts.length; i++) {
+                var nft = nfts[i];
+                nftGrid += createNFTCard(nft);
+            }
+
+            nftGrid += '</div>';
+            nftContainer.innerHTML = nftGrid;
+        }
+
+        function createNFTCard(nft) {
+            var statusClass = nft.isOwned ? 'owned' : (nft.isListed ? 'listed' : '');
+            var statusText = nft.isOwned ? 'Owned' : (nft.isListed ? 'For Sale' : 'Not Listed');
+
+            var actions = '';
+            if (nft.isOwned) {
+                actions = '<div class="nft-actions">' +
+                    '<button class="btn btn-small secondary" onclick="listNFT(' + nft.tokenId + ')">🏷️ List for Sale</button>' +
+                    '<button class="btn btn-small" onclick="transferNFT(' + nft.tokenId + ')">📤 Transfer</button>' +
+                    '</div>';
+            } else if (nft.isListed) {
+                var priceEth = (nft.price * 0.00001).toFixed(5); // Convert uint32 price to ETH
+                actions = '<div style="margin-bottom: 1rem; color: #06b6d4; font-weight: 600;">Price: ' + priceEth + ' ETH</div>' +
+                    '<div class="nft-actions">' +
+                    '<button class="btn btn-small" onclick="buyNFT(' + nft.tokenId + ', ' + nft.price + ')">💰 Buy Now</button>' +
+                    '</div>';
+            }
+
+            return '<div class="nft-item ' + (nft.isOwned ? 'owned' : '') + '">' +
+                '<div class="nft-header">' +
+                    '<div class="nft-id">Token #' + nft.tokenId + '</div>' +
+                    '<div class="nft-status ' + statusClass + '">' + statusText + '</div>' +
+                '</div>' +
+                '<div class="nft-title">' + nft.name + '</div>' +
+                '<div class="nft-owner">Owner: ' + (nft.owner.substring(0, 6) + '...' + nft.owner.substring(38)) + '</div>' +
+                actions +
+            '</div>';
+        }
+
+        // NFT Interaction Functions
+        function listNFT(tokenId) {
+            console.log('List NFT function called for token:', tokenId);
+
+            if (!isWalletConnected || !signer) {
+                showAlert('Please connect your wallet first', 'error');
+                return;
+            }
+
+            var price = prompt('Enter price in ETH (e.g., 0.001):');
+            if (!price || isNaN(price) || parseFloat(price) <= 0) {
+                showAlert('Invalid price entered', 'error');
+                return;
+            }
+
+            var priceUint32 = Math.floor(parseFloat(price) * 100000); // Convert to uint32 format
+            if (priceUint32 <= 0 || priceUint32 > 4294967295) {
+                showAlert('Price out of range. Please enter a value between 0.00001 and 42949.67295 ETH', 'error');
+                return;
+            }
+
+            showAlert('Listing NFT #' + tokenId + ' for ' + price + ' ETH...', 'success');
+
+            var contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+
+            contract.list(tokenId, priceUint32)
+                .then(function(tx) {
+                    console.log('List transaction sent:', tx.hash);
+                    showAlert('Transaction sent! Hash: ' + tx.hash.substring(0, 10) + '...', 'success');
+                    return tx.wait();
+                })
+                .then(function(receipt) {
+                    console.log('List transaction confirmed:', receipt);
+                    showAlert('✅ NFT #' + tokenId + ' listed successfully!', 'success');
+                    setTimeout(loadNFTs, 2000); // Reload NFTs after 2 seconds
+                })
+                .catch(function(error) {
+                    console.error('Error listing NFT:', error);
+                    var errorMsg = error.message || error.toString();
+
+                    if (errorMsg.includes('user rejected')) {
+                        showAlert('Transaction cancelled by user', 'error');
+                    } else if (errorMsg.includes('FHE') || errorMsg.includes('asEuint32')) {
+                        showAlert('⚠️ Listing failed: FHE functions not available on Sepolia. This contract needs Zama testnet.', 'error');
+                    } else {
+                        showAlert('Error listing NFT: ' + errorMsg, 'error');
+                    }
+                });
+        }
+
+        function buyNFT(tokenId, price) {
+            console.log('Buy NFT function called for token:', tokenId, 'price:', price);
+
+            if (!isWalletConnected || !signer) {
+                showAlert('Please connect your wallet first', 'error');
+                return;
+            }
+
+            var priceEth = (price * 0.00001).toFixed(5);
+            var confirmPurchase = confirm('Buy NFT #' + tokenId + ' for ' + priceEth + ' ETH?');
+            if (!confirmPurchase) {
+                return;
+            }
+
+            showAlert('Purchasing NFT #' + tokenId + ' for ' + priceEth + ' ETH...', 'success');
+
+            var contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+            var valueWei = ethers.parseEther(priceEth);
+
+            contract.buy(tokenId, { value: valueWei })
+                .then(function(tx) {
+                    console.log('Buy transaction sent:', tx.hash);
+                    showAlert('Transaction sent! Hash: ' + tx.hash.substring(0, 10) + '...', 'success');
+                    return tx.wait();
+                })
+                .then(function(receipt) {
+                    console.log('Buy transaction confirmed:', receipt);
+                    showAlert('🎉 NFT #' + tokenId + ' purchased successfully!', 'success');
+                    setTimeout(loadNFTs, 2000); // Reload NFTs after 2 seconds
+                })
+                .catch(function(error) {
+                    console.error('Error buying NFT:', error);
+                    var errorMsg = error.message || error.toString();
+
+                    if (errorMsg.includes('user rejected')) {
+                        showAlert('Transaction cancelled by user', 'error');
+                    } else if (errorMsg.includes('insufficient funds')) {
+                        showAlert('Insufficient funds for purchase', 'error');
+                    } else {
+                        showAlert('Error purchasing NFT: ' + errorMsg, 'error');
+                    }
+                });
+        }
+
+        function transferNFT(tokenId) {
+            console.log('Transfer NFT function called for token:', tokenId);
+
+            if (!isWalletConnected || !signer) {
+                showAlert('Please connect your wallet first', 'error');
+                return;
+            }
+
+            var toAddress = prompt('Enter recipient address:');
+            if (!toAddress || !ethers.isAddress(toAddress)) {
+                showAlert('Invalid address entered', 'error');
+                return;
+            }
+
+            var confirmTransfer = confirm('Transfer NFT #' + tokenId + ' to ' + toAddress + '?');
+            if (!confirmTransfer) {
+                return;
+            }
+
+            showAlert('Transferring NFT #' + tokenId + '...', 'success');
+
+            var contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+
+            contract.transferFrom(userAddress, toAddress, tokenId)
+                .then(function(tx) {
+                    console.log('Transfer transaction sent:', tx.hash);
+                    showAlert('Transaction sent! Hash: ' + tx.hash.substring(0, 10) + '...', 'success');
+                    return tx.wait();
+                })
+                .then(function(receipt) {
+                    console.log('Transfer transaction confirmed:', receipt);
+                    showAlert('✅ NFT #' + tokenId + ' transferred successfully!', 'success');
+                    setTimeout(loadNFTs, 2000); // Reload NFTs after 2 seconds
+                })
+                .catch(function(error) {
+                    console.error('Error transferring NFT:', error);
+                    var errorMsg = error.message || error.toString();
+
+                    if (errorMsg.includes('user rejected')) {
+                        showAlert('Transaction cancelled by user', 'error');
+                    } else {
+                        showAlert('Error transferring NFT: ' + errorMsg, 'error');
+                    }
+                });
+        }
+
+        // Make functions globally available
+        window.listNFT = listNFT;
+        window.buyNFT = buyNFT;
+        window.transferNFT = transferNFT;
+
+        // Event listener setup
+        function setupEventListeners() {
+            console.log('Setting up event listeners...');
+
+            var connectBtn = document.getElementById('connectWallet');
+            var deployBtn = document.getElementById('deployContract');
+            var checkContractBtn = document.getElementById('checkContractBtn');
+            var loadNFTsBtn = document.getElementById('loadNFTsBtn');
+            var checkNetworkBtn = document.getElementById('checkNetworkBtn');
+            var switchNetworkBtn = document.getElementById('switchNetworkBtn');
+
+            if (connectBtn) {
+                connectBtn.onclick = function(e) {
+                    console.log('Connect button clicked!');
+                    if (e && e.preventDefault) e.preventDefault();
+                    connectWallet();
+                };
+            }
+
+            if (deployBtn) {
+                deployBtn.onclick = function(e) {
+                    console.log('Deploy button clicked!');
+                    if (e && e.preventDefault) e.preventDefault();
+                    deployContract();
+                };
+            }
+
+            if (checkContractBtn) {
+                checkContractBtn.onclick = function(e) {
+                    console.log('Check contract button clicked!');
+                    if (e && e.preventDefault) e.preventDefault();
+                    checkContract();
+                };
+            }
+
+            if (loadNFTsBtn) {
+                loadNFTsBtn.onclick = function(e) {
+                    console.log('Load NFTs button clicked!');
+                    if (e && e.preventDefault) e.preventDefault();
+                    loadNFTs();
+                };
+            }
+
+            if (checkNetworkBtn) {
+                checkNetworkBtn.onclick = function(e) {
+                    console.log('Check network button clicked!');
+                    if (e && e.preventDefault) e.preventDefault();
+                    checkNetwork();
+                };
+            }
+
+            if (switchNetworkBtn) {
+                switchNetworkBtn.onclick = function(e) {
+                    console.log('Switch network button clicked!');
+                    if (e && e.preventDefault) e.preventDefault();
+                    switchToSepolia();
+                };
+            }
+
+            // Listen for account changes
+            if (window.ethereum) {
+                window.ethereum.on('accountsChanged', function(accounts) {
+                    console.log('Accounts changed:', accounts);
+                    if (accounts.length === 0) {
+                        isWalletConnected = false;
+                        userAddress = null;
+                        updateWalletDisplay();
+                        showAlert('Wallet disconnected', 'error');
+                    } else {
+                        connectWallet();
+                    }
+                });
+
+                window.ethereum.on('chainChanged', function(chainId) {
+                    console.log('Chain changed to:', chainId);
+                    currentChainId = chainId;
+                    updateWalletDisplay();
+                    checkNetwork();
+                });
+            }
+
+            console.log('Event listeners set up successfully');
+        }
+
+        // Initialize application
+        function initApp() {
+            console.log('=== Initializing Privacy NFT Marketplace ===');
+
+            // Get DOM element references
+            statusDot = document.getElementById('statusDot');
+            walletStatus = document.getElementById('walletStatus');
+            walletInfo = document.getElementById('walletInfo');
+            userAddressSpan = document.getElementById('userAddress');
+            networkNameSpan = document.getElementById('networkName');
+            chainIdSpan = document.getElementById('chainId');
+            alertsContainer = document.getElementById('alerts');
+            statusContent = document.getElementById('statusContent');
+
+            setupEventListeners();
+
+            // Check if MetaMask is available
+            if (typeof window.ethereum !== 'undefined') {
+                updateStatus('MetaMask detected - ready to connect');
+                showAlert('✅ MetaMask detected! Click "Connect Wallet" to start.', 'success');
+
+                // Check if already connected
+                window.ethereum.request({ method: 'eth_accounts' })
+                    .then(function(accounts) {
+                        if (accounts.length > 0) {
+                            console.log('Already connected accounts found:', accounts);
+                            connectWallet();
+                        }
+                    })
+                    .catch(function(error) {
+                        console.error('Error checking existing accounts:', error);
+                    });
+            } else {
+                updateStatus('MetaMask not found - please install MetaMask');
+                showAlert('❌ MetaMask not detected. Please install MetaMask to use this application.', 'error');
+            }
+
+            console.log('=== Initialization Complete ===');
+        }
+
+        // Error handler
+        window.onerror = function(message, source, lineno, colno, error) {
+            console.error('JavaScript Error:', message);
+            console.error('Source:', source, 'Line:', lineno);
+            showAlert('Error: ' + message, 'error');
+            return false;
+        };
+
+        // Initialize when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initApp);
+        } else {
+            initApp();
+        }
+
+        console.log('=== Script Setup Complete ===');
+    </script>
+</body>
+</html>

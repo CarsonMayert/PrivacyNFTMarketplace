@@ -1,0 +1,261 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.24;
+
+import { FHE, euint8, euint32, ebool } from "@fhevm/solidity/lib/FHE.sol";
+import { SepoliaConfig } from "@fhevm/solidity/config/ZamaConfig.sol";
+
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+
+/**
+ * @title SimpleFHEMarketplace
+ * @dev Simplified FHE NFT marketplace to avoid stack depth issues
+ */
+contract SimpleFHEMarketplace is ERC721, ReentrancyGuard, Ownable, SepoliaConfig {
+
+    enum ListingStatus { Active, Sold, Cancelled }
+    enum RarityTier { Common, Rare, Epic, Legendary }
+
+    struct NFTListing {
+        uint256 tokenId;
+        address seller;
+        uint256 price;
+        euint32 encryptedPrice;
+        ListingStatus status;
+        uint256 listedAt;
+        uint256 expiresAt;
+        bool isConfidentialSale;
+    }
+
+    struct UserProfile {
+        euint32 encryptedPurchaseCount;
+        euint32 encryptedSalesCount;
+        uint256 totalSpent;
+        uint256 totalEarned;
+        mapping(uint256 => bool) ownedTokens;
+    }
+
+    // State variables
+    uint256 public _tokenIds;
+    uint256 public marketplaceFee = 250; // 2.5%
+    uint256 public constant LISTING_DURATION = 30 days;
+    address public feeCollector;
+
+    // Stats
+    uint256 public totalVolume;
+    uint256 public totalSales;
+
+    // Mappings
+    mapping(uint256 => NFTListing) public listings;
+    mapping(address => UserProfile) public userProfiles;
+
+    // Events
+    event NFTMinted(uint256 indexed tokenId, address indexed owner, string category);
+    event NFTListed(uint256 indexed tokenId, address indexed seller, uint256 price);
+    event NFTPurchased(uint256 indexed tokenId, address indexed buyer, address indexed seller, uint256 price);
+
+    constructor(address _feeCollector) ERC721("Privacy Collectibles", "PNFT") Ownable(msg.sender) {
+        feeCollector = _feeCollector;
+    }
+
+    /**
+     * @dev Mint new NFT
+     */
+    function mintNFT(
+        address _to,
+        string memory /* _name */,
+        string memory /* _description */,
+        string memory _category,
+        RarityTier /* _rarity */,
+        bool /* _isPrivateOwnership */
+    ) external returns (uint256) {
+        _tokenIds++;
+        uint256 newTokenId = _tokenIds;
+
+        _mint(_to, newTokenId);
+
+        // Initialize basic listing structure
+        listings[newTokenId] = NFTListing({
+            tokenId: newTokenId,
+            seller: address(0),
+            price: 0,
+            encryptedPrice: FHE.asEuint32(0),
+            status: ListingStatus.Cancelled,
+            listedAt: 0,
+            expiresAt: 0,
+            isConfidentialSale: false
+        });
+
+        emit NFTMinted(newTokenId, _to, _category);
+        return newTokenId;
+    }
+
+    /**
+     * @dev List NFT for sale
+     */
+    function listNFT(
+        uint256 _tokenId,
+        uint256 _price,
+        bool _isConfidentialSale
+    ) external nonReentrant {
+        require(_exists(_tokenId), "Token does not exist");
+        require(ownerOf(_tokenId) == msg.sender, "Not token owner");
+        require(_price >= 10000000000000, "Price too low"); // 0.00001 ETH minimum
+
+        NFTListing storage listing = listings[_tokenId];
+
+        // Encrypt price using FHE
+        euint32 encryptedPrice = FHE.asEuint32(_price);
+        FHE.allowThis(encryptedPrice);
+
+        // Update listing
+        listing.seller = msg.sender;
+        listing.price = _price;
+        listing.status = ListingStatus.Active;
+        listing.listedAt = block.timestamp;
+        listing.expiresAt = block.timestamp + LISTING_DURATION;
+        listing.encryptedPrice = encryptedPrice;
+        listing.isConfidentialSale = _isConfidentialSale;
+
+        emit NFTListed(_tokenId, msg.sender, _price);
+    }
+
+    /**
+     * @dev Purchase NFT
+     */
+    function purchaseNFT(
+        uint256 _tokenId,
+        bool /* _isPrivatePurchase */
+    ) external payable nonReentrant {
+        NFTListing storage listing = listings[_tokenId];
+
+        require(listing.status == ListingStatus.Active, "NFT not for sale");
+        require(listing.seller != msg.sender, "Cannot buy own NFT");
+        require(msg.value >= listing.price, "Insufficient payment");
+        require(block.timestamp <= listing.expiresAt, "Listing expired");
+
+        // Update listing status
+        listing.status = ListingStatus.Sold;
+
+        // Transfer NFT
+        _transfer(listing.seller, msg.sender, _tokenId);
+
+        // Process payment
+        _processPayment(listing.seller, listing.price);
+
+        // Update encrypted counts
+        _updateCounts(msg.sender, listing.seller);
+
+        emit NFTPurchased(_tokenId, msg.sender, listing.seller, listing.price);
+    }
+
+    /**
+     * @dev Get current round info (FHE compatibility test)
+     */
+    function getCurrentRoundInfo() external view returns (
+        uint256 tokenCount,
+        uint256 activeListings,
+        uint256 volume,
+        uint256 sales
+    ) {
+        uint256 activeCount = 0;
+        for (uint256 i = 1; i <= _tokenIds; i++) {
+            if (listings[i].status == ListingStatus.Active) {
+                activeCount++;
+            }
+        }
+
+        return (_tokenIds, activeCount, totalVolume, totalSales);
+    }
+
+    /**
+     * @dev Check if listing is active (equivalent to isGuessTimeActive)
+     */
+    function isListingActive(uint256 _tokenId) external view returns (bool) {
+        NFTListing storage listing = listings[_tokenId];
+        return listing.status == ListingStatus.Active &&
+               block.timestamp <= listing.expiresAt;
+    }
+
+    /**
+     * @dev Submit encrypted data (equivalent to submitGuess)
+     */
+    function submitEncryptedData(uint8 _data) external returns (euint8) {
+        // Encrypt data using FHE
+        euint8 encryptedData = FHE.asEuint8(_data);
+
+        // Set ACL permissions
+        FHE.allowThis(encryptedData);
+        FHE.allow(encryptedData, msg.sender);
+
+        return encryptedData;
+    }
+
+    /**
+     * @dev Process payment (internal helper)
+     */
+    function _processPayment(address _seller, uint256 _price) internal {
+        uint256 fee = (_price * marketplaceFee) / 10000;
+        uint256 sellerAmount = _price - fee;
+
+        // Update stats
+        totalVolume += _price;
+        totalSales++;
+
+        // Transfer payments
+        payable(_seller).transfer(sellerAmount);
+        if (fee > 0) {
+            payable(feeCollector).transfer(fee);
+        }
+
+        // Return excess
+        if (msg.value > _price) {
+            payable(msg.sender).transfer(msg.value - _price);
+        }
+    }
+
+    /**
+     * @dev Update encrypted counts (internal helper)
+     */
+    function _updateCounts(address _buyer, address _seller) internal {
+        userProfiles[_buyer].encryptedPurchaseCount = FHE.add(
+            userProfiles[_buyer].encryptedPurchaseCount,
+            FHE.asEuint32(1)
+        );
+        userProfiles[_seller].encryptedSalesCount = FHE.add(
+            userProfiles[_seller].encryptedSalesCount,
+            FHE.asEuint32(1)
+        );
+    }
+
+    /**
+     * @dev Update marketplace fee
+     */
+    function updateMarketplaceFee(uint256 _newFee) external onlyOwner {
+        require(_newFee <= 1000, "Fee too high"); // Max 10%
+        marketplaceFee = _newFee;
+    }
+
+    /**
+     * @dev Update fee collector
+     */
+    function updateFeeCollector(address _newCollector) external onlyOwner {
+        require(_newCollector != address(0), "Invalid address");
+        feeCollector = _newCollector;
+    }
+
+    /**
+     * @dev Emergency withdraw
+     */
+    function emergencyWithdraw() external onlyOwner {
+        payable(owner()).transfer(address(this).balance);
+    }
+
+    /**
+     * @dev Check if token exists
+     */
+    function _exists(uint256 tokenId) internal view returns (bool) {
+        return tokenId > 0 && tokenId <= _tokenIds;
+    }
+}
